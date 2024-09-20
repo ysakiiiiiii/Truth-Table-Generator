@@ -7,4 +7,4 @@ if statement == "P AND Q":
     print("True  | False | Fak-eh")
     print("False | True  | False")
     print("False | False | False")
-
+#joke lng eto, not sure about the implementation 
