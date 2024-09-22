@@ -28,7 +28,7 @@ for word in words:
          print("Invalid Statement")
          valid = False
          break
-     if word1 in connectives and word2 in connectives and word1 != "not":
+     if word1 in connectives and word2 in connectives and word2 != "not":
          print("Invalid Statement")
          valid = False
          break
