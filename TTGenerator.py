@@ -32,7 +32,10 @@ for word in words:
          print("Invalid Statement")
          valid = False
          break
-        
+     if words[-1] in connectives:
+         print("Invalid Statement")
+         valid = False
+         break
         
 
 if valid: #(tab niyo yung sa baba)
