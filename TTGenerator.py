@@ -24,10 +24,6 @@ for word in words:
         
  for word1, word2 in zip(words, words[1:]):
     if valid:
-     if word1 == word2:
-         print("Invalid Statement") 
-         valid = False
-         break
      if word1 in vars and word2 in vars:
          print("Invalid Statement")
          valid = False
