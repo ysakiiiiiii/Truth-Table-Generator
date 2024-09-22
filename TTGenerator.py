@@ -2,7 +2,6 @@ connectives = ["not", "and", "or", "implies"] #bicon idk
 vars = ["P", "Q", "R"]
 valid = True
 
-while valid: #(tab niyo yung sa baba)
 statement = input("Enter a statement: ")
 
 words = statement.split()
@@ -21,6 +20,7 @@ for word in words:
         valid = False
         #it does nothing yet tamad ako eh
 
+while valid: #(tab niyo yung sa baba)
 conCount = 0
 varCount = 0
 
