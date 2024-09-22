@@ -1,8 +1,8 @@
-connectives = ["not", "and", "or", "implies"] #bicon idk
+connectives = ["~", "^", "⌄", "->","<->"] #bicon idk
 vars = ["P", "Q", "R"]
 valid = True
 
-statement = input("Enter a statement: ")
+statement = input("Enter a statement: ").upper()
 
 words = statement.split()
 
@@ -28,7 +28,7 @@ for word in words:
          print("Invalid Statement")
          valid = False
          break
-     if word1 in connectives and word2 in connectives and word2 != "not":
+     if word1 in connectives and word2 in connectives and word2 != "~":
          print("Invalid Statement")
          valid = False
          break
