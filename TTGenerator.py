@@ -19,6 +19,9 @@ for word in words:
         print("invalid syntax detected")
         valid = False
         #it does nothing yet tamad ako eh
+        #this does not validate double connectives except not
+        #double variables
+        #only detects elements not present in the lists
 
 while valid: #(tab niyo yung sa baba)
 conCount = 0
