@@ -13,7 +13,7 @@ for word in words:
         variables.append(word)
     elif word in connectives:  
         connectivesUsed.append(word)
-    else 
+    else:
         print("invalid syntax detected")
         #it does nothing yet tamad ako dh
         
