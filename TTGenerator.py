@@ -6,6 +6,7 @@ words = statement.split()
 
 variables = []
 connectivesUsed = []
+valid = True
 
 #reads variables and connectives
 for word in words:
@@ -15,8 +16,11 @@ for word in words:
         connectivesUsed.append(word)
     else:
         print("invalid syntax detected")
-        #it does nothing yet tamad ako dh
-        
+        valid = False
+        #it does nothing yet tamad ako eh
+
+
+while valid: #(tab niyo yung sa baba)
 conCount = 0
 varCount = 0
 
