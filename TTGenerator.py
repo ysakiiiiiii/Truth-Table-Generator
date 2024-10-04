@@ -62,7 +62,7 @@ def syntaxChecker(words):
             print("Invalid Statement: Two variables cannot be adjacent.")
             valid = False
             return
-        if word1 in connectives and word2 in connectives and word2 != "not":
+        if word1 in connectives and word2 in connectives and word2 != "~":
             print("Invalid Statement: Two connectives cannot be adjacent.")
             valid = False
             return
