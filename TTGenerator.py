@@ -70,6 +70,10 @@ def syntaxChecker(words):
             print("Invalid Statement: The last word cannot be a connective.")
             valid = False
             return
+        if words[0] in connectives and words[0] != "~":
+            print("Invalid Statement: The first word cannot be a connective.")
+            valid = False
+            return
 
     if valid:
         uniqueVars = set(variables)  # set function para iremove yung duplicates na vars
