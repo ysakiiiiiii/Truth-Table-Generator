@@ -1,4 +1,5 @@
 
+
 connectives = ["~", "^", "⌄", "->", "<->"] 
 vars = ["P", "Q", "R"]
 matchingBrackets = {"(": ")", "{": "}", "[": "]"}  
