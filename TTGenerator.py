@@ -1,37 +1,72 @@
+import sys
 connectives = ["~", "^", "v", "->", "<->"] 
 vars = ["p", "q", "r"]
-matchingBrackets = {"(": ")", "{": "}", "[": "]"}  
+matchingBrackets = {"(": ")"}  
+
 openBrackets = set(matchingBrackets.keys())
 closeBrackets = set(matchingBrackets.values())
+
 firstVar = []
 secondVar = []
 thirdVar = []
+
 negationFirstVar = [] 
-negationSecondVar = []
+negationSecondVar = [] 
 negationThirdVar= []
+
 variables = []
 
 rowCount = 0
-valid = True  # Glinobal ko kase para same sa lahat na ng fucking functions
+valid = True  # Glinobal ko kase para same sa lahat na ng fucking functions, (cge po)
 
 # Flag to check if P Q R is negated
 negateP = False 
 negateQ = False
 negateR = False
 
+def statementFromFile():
+    try:
+      file = open("input.txt","rt")
+      lines = file.readlines()
+      logStatementCount = 0
+      statement = []
+
+      for line in lines:
+         strippedLine = line.strip()
+         if strippedLine != "":
+           statement.append(strippedLine)
+           logStatementCount+=1
+         else:
+            pass
+         
+      if logStatementCount < 2:
+        statementToReturn = statement[0]
+        return statementToReturn.lower()
+      else:
+         raise ValueError(f"We found {logStatementCount}, input 1 statement only")
+              
+    except ValueError as Ve:
+        print(f"Invalid Number of Inputs: {Ve}") 
+        sys.exit()
+    except FileNotFoundError:
+        print("File was not found")
+        sys.exit()
+        
+
 def userInput():
     global variables
     subStatements = []
+    # statement = statementFromFile()
     statement = input("Enter a statement: ").lower()
     words = statement.split()
     
-    if checkParentheses(words) and syntaxChecker(words):
+    if syntaxChecker(words) and checkParentheses(words):
         variables, subStatements = extractPropositions(statement)
 
         print("Propositional Variables:", variables) #Print test forda variables bes same thing sa bottom
         print("Sub-statements:", subStatements)
 
-    evaluateStatement(subStatements, variables)
+        evaluateStatement(subStatements, variables)
 
 def checkParentheses(words):
     global valid  # Idineclare ko para mamodify dito sa function yung tang-inang global var na yon
@@ -48,61 +83,111 @@ def checkParentheses(words):
                 return False  
 
     if not stackParentheses:  
-        print("Parentheses are balanced.")
+        pass
     else:
-        print("Parentheses are not balanced.")
+        print("Invalid Statement: Parantheis are not balanced")
         valid = False
 
     if valid:
         return True
+    else:
+        return False
 
 def syntaxChecker(words):
     global valid, negateP, negateQ, negateR
     variables = []  # Store variables used
     connectivesUsed = []  # Store connectives used
-    negationStack = []  # Store negation used
-    parenthesesUsed = []  # Store parentheses used
-    
-    # To check syntax din by Basilio
 
-    for word in words:
+    for index, word in enumerate(words):
         if word.isalpha() and word in vars:  
             variables.append(word)
-            if negationStack and negationStack[-1]:
-                if word == "P":
-                    negateP = True
-                elif word == "Q":
-                    negateQ = True
-                elif word == "R":
-                    negateR = True
-                negationStack.pop() 
         elif word in connectives: 
             connectivesUsed.append(word)
             if word == "~":
-                negationStack.append(True)
+                if words[index + 1] in vars:
+                    if words[index + 1] == "p":
+                        negateP = True
+                    elif words[index + 1] == "q":
+                        negateQ = True
+                    elif words[index + 1] == "r":
+                        negateR = True
+                
         elif word in matchingBrackets.keys() or word in matchingBrackets.values():
-            parenthesesUsed.append(word)
-        else:
-            print("Invalid syntax detected.")
+            if word in matchingBrackets.keys():
+                if words[index + 1] in connectives and words[index + 1] != "~":
+                    print("Invalid Statement: Connective cannot follow an Open Parenthesis.") #this solves issues like ( p ( ^ q ))
+                    valid = False
+                    return
+                if words[index + 1] in matchingBrackets.values():
+                    print("Invalid Statement: Parentheses cannot be empty.") # handles empty parentheses like ( ( ) ( p ^ q ) )
+                    valid = False
+                    return
+            if word in matchingBrackets.values():
+                if words[index - 1] in connectives:
+                    print("Invalid Statement: Closed Parenthesis cannot be preceeded by a connective.") #this solves issues like ( p ^ ) q 
+                    valid = False
+                    return
+        elif word[0] == "~" and len(word) > 1: 
+             print("Invalid Statement: Negations should be separated with a space. Maybe try ~ " + " ".join(word[1:].upper()) + "?") #guides the user to our program's syntax
+             valid = False
+             return
+        elif word[0] == "(" and len(word) > 1: 
+             print("Invalid Statement: Parenthesis should be separated with a space. Maybe try \"( " + " ".join(word[1:].upper())  + "\"?") #guides the user to our program's syntax
+             valid = False
+             return
+        elif word[-1] == ")" and len(word) > 1: 
+             print("Invalid Statement: Parenthesis should be separated with a space. Maybe try \"" + " ".join(word[:-1].upper())+ " )\"?") #guides the user to our program's syntax
+             valid = False
+             return
+        elif word.isalpha():
+            print("Invalid Statement: As much as we want to accept \"" + word + "\" Please enter P, Q or R as statements only. ") #guides the user to our program's syntax
             valid = False
             return
+        else:
+            print("Invalid Statement: Invalid syntax detected. " + word + " not recgonized")
+            valid = False
+            return
+        
+    wordList = [word for word in words if word not in matchingBrackets.keys() and word not in matchingBrackets.values()]
+    # copy of the list of words
+    # this makes sure checking of adjacent variables and connectives will go smoothly
+    # like in p -> q ( r -> r ) where q and r are adjacent
+    # this allows ( ( ) ^ q ) and ( ( q ) q ) to be checked properly
+    # only removes from the copy
+    # also allows instances like ( ) to be marked as invalid
+    
+    if len(wordList) == 0:
+        print("Invalid Statement: no variables or connectives detected")
+        valid = False
+        return
+    # handles "( )" and other empty inputs
+    
+    if len(wordList) == 1 and wordList[0] in connectives:
+        print("Invalid Statement: cannot evaluate a connective by itself")
+        valid = False
+        return
+    # handles input that is just one connective
 
     # To check syntax for adjacent variables and connectives 
-    for word1, word2 in zip(words, words[1:]):
+    for word1, word2 in zip(wordList, wordList[1:]):
         if word1 in vars and word2 in vars:
-            print("Invalid Statement: Two variables cannot be adjacent.")
+            print("Invalid Statement: Two variables cannot be adjacent.") # handles inputs like " p p ^ p "
+            valid = False
+            return
+        if word1 in vars and word2 == "~":
+            print("Invalid Statement: Negation cannot proceed a variable.") # handles inputs like " ~ p ~ q "
             valid = False
             return
         if word1 in connectives and word2 in connectives and word2 != "~":
-            print("Invalid Statement: Two connectives cannot be adjacent.")
+            print("Invalid Statement: Two connectives cannot be adjacent.") #handles inputs like " p ^ v p"
             valid = False
             return
-        if words[-1] in connectives:
-            print("Invalid Statement: The last word cannot be a connective.")
+        if wordList[-1] in connectives:
+            print("Invalid Statement: The last word cannot be a connective.") # handles inputs like " p ^ "
             valid = False
             return
-        if words[0] in connectives and words[0] != "~":
-            print("Invalid Statement: The first word cannot be a connective.")
+        if wordList[0] in connectives and wordList[0] != "~":
+            print("Invalid Statement: The first word cannot be a connective.") # handles inputs like " ^ p"
             valid = False
             return
 
@@ -139,48 +224,63 @@ def calculateNegations():
     negationSecondVar = ["False" if temp == "True" else "True" for temp in secondVar] if negateQ else []
     negationThirdVar = ["False" if temp == "True" else "True" for temp in thirdVar] if negateR else []
 
-def readLogic(variables, connectivesUsed):
+def removeParentheses(subst):
 
-    print("Test")
-    # conCount = 0
-    # varCount = 0
-    # while varCount < len(variables) or conCount < len(connectivesUsed):
-    #     if conCount < len(connectivesUsed) and connectivesUsed[conCount] == "not":
-    #         print(connectivesUsed[conCount] + " " + variables[varCount])
-    #         conCount += 1
-    #         varCount += 1
-    #     elif varCount < len(variables) and varCount <= conCount:
-    #         print(variables[varCount] + " ")
-    #         varCount += 1
-    #     if conCount < len(connectivesUsed):
-    #         print(connectivesUsed[conCount] + " ")
-    #         conCount += 1
+        while subst.startswith("(") and subst.endswith(")"):
+            subst = subst[1:-1].strip()
+        return f"({subst})" if subst else ""
 
 def extractPropositions(statement):
 
-    print(statement)#test
+    print(statement)
     propositions = set()
     subStatements = []
     stackOpenBracket = []
+    negateSubStatement = False
+    checkNegatedCompound = False
+    processedStatements = set()
 
     for index, char in enumerate(statement):
+        
+        if checkNegatedCompound:        # if Negation or ~ was detected, check for next element if it's parenthesis
+            if statement[index] == " ":
+                continue
+            elif statement[index] == "(":   #if it is, negate the next substatement like ~ ( P v Q )
+                negateSubStatement = True
+                checkNegatedCompound = False
+            else:
+                checkNegatedCompound = False  #if not, it's likely a proposition like ~ P
+        
+        if char == "~":
+            checkNegatedCompound = True #check if compound is to be negated
+            
         if char.isalpha() and char != 'v':
             propositions.add(char)
 
         if char in openBrackets:
-            stackOpenBracket.append((char, index)) # If open parentheses siya, ilalagay sa stack yung parentheses at yung index bale kung ( p v r) v q 
-                                                   # Unang parenthesis na maencounter is nakastore sa stack na parang [ ( '(' , 0 ) ] since zero yung index
+            stackOpenBracket.append(index)# If open parentheses siya, ilalagay sa stack yung parentheses at yung index bale kung ( p v r) v q 
+                                        
 
-        elif char in closeBrackets:
+        elif char in closeBrackets and stackOpenBracket:
+                start = stackOpenBracket.pop()
+                subst = statement[start : index + 1]
 
-            if stackOpenBracket: #kung may laman
+                normalizedSubst = removeParentheses(subst)
 
-                latestOpenBracket, start = stackOpenBracket.pop() #kukunin niya yung latest na bracket na nasa top at yung index since two ang value ang nkstore sa stack
+                if normalizedSubst not in processedStatements:
+                    subStatements.append(normalizedSubst) 
+                    processedStatements.add(normalizedSubst)  # Track to avoid duplicates
 
-                if matchingBrackets[latestOpenBracket] == char: #yung char dito is yung current CLOSING bracket - titignan lang kung kamatch ng open yung close na bracket
-                    subStatements.append(statement[start : index + 1]) #if oo, iadd niya sa substatement from sa index ng latest open bracket to the current index which is index ng closing bracket 
+                    if negateSubStatement: #negates the substatement if there's a ~ prior to it
+                        negatedSubst = "~" + normalizedSubst
+                        if negatedSubst not in processedStatements:
+                            subStatements.append(negatedSubst)
+                            processedStatements.add(negatedSubst)
+                        negateSubStatement = False
 
-    subStatements.append(statement)
+    normalizedStatement = removeParentheses(statement)
+    if normalizedStatement not in processedStatements:
+        subStatements.append(statement)     
     return sorted(propositions), subStatements #sorted para magreturn as list yung propositions 
 
 def evaluateStatement(subStatements, variables):
@@ -196,8 +296,6 @@ def evaluateStatement(subStatements, variables):
         if rowCount == 2:
             rowValues = {variables[0]: firstVar[i]}
 
-
-
         for index, subStatement in enumerate(subStatements):
             evaluatedResult = evalProposition(subStatement, rowValues) 
             results[index].append(evaluatedResult)
@@ -206,48 +304,79 @@ def evaluateStatement(subStatements, variables):
 
 def evalProposition(subStatement, rowValues):
 
-    if 'p' in rowValues:
-        subStatement = subStatement.replace("p", rowValues['p'])
-    
-    if 'q' in rowValues:
-        subStatement = subStatement.replace("q", rowValues['q'])
-    
-    if 'r' in rowValues:
-        subStatement = subStatement.replace("r", rowValues['r'])
+    try:
+        
+        if 'r' in rowValues:
+            subStatement = subStatement.replace("r", rowValues['r'])
+            # key r will be evaluated first and will be replaced by corresponding value
+            # if otherwise, p and q which truth values happen to be True will have it's r be replaced with r's value
+            # leading to errors such as TTrueue and TFalseue
+            
+        if 'p' in rowValues:
+            subStatement = subStatement.replace("p", rowValues['p'])
+        
+        if 'q' in rowValues:
+            subStatement = subStatement.replace("q", rowValues['q'])
+        
+        subStatement = subStatement.replace("~", " not ")  
+        subStatement = subStatement.replace("^", " and ")    
+        subStatement = subStatement.replace("v", " or ")     
+        subStatement = subStatement.replace("<->", " is ")   
+        subStatement = subStatement.replace("->", " <= ") 
 
-    subStatement = subStatement.replace("~", " not ").replace("^", " and ").replace("v", " or ")
-    subStatement = subStatement.replace("->", " <= ").replace("<->", " == ")
-
-    return str(eval(subStatement)) #error sa boolean output try niyo nga lagyan ng try and exception para mas specific yung error diko madebug
+        return str(eval(subStatement)) #error sa boolean output try niyo nga lagyan ng try and exception para mas specific yung error diko madebug
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 def printFinalTable(results, subStatements, variables):
 
-    #pagprint ng mga header lang
-    if rowCount == 8:
-        print(f"{variables[0]:<10} {variables[1]:<10} {variables[2]:<10}", end=" ")
+    headers = []
 
-    elif rowCount == 4:
-        print(f"{variables[0]:<10} {variables[1]:<10}", end=" ")
-        
-    elif rowCount == 2:
-        print(f"{variables[0]:<10}", end=" ")
+    if 'p' in variables:
+        headers.append("p")
+    if 'q' in variables:
+        headers.append("q")
+    if 'r' in variables:
+        headers.append("r")
+    if negateP:
+        headers.append("~p")
+    if negateQ:
+        headers.append("~q")
+    if negateR:
+        headers.append("~r")
 
+    # Print headers for truth table.
+    print(" ".join([f"{header:<10}" for header in headers]), end=" ")
+
+    # Print sub-statements in the table header.
     header = " ".join([f"{sub:<15}" for sub in subStatements])
     print(header)
-    
-    totalWidth = 10 * (3 if rowCount == 8 else (2 if rowCount == 4 else 1)) + len(header)
+
+    totalWidth = 10 * len(headers) + len(header)
     print('-' * totalWidth)
 
     for i in range(rowCount):
+        row = []
+        # Print truth values for variables.
         if rowCount == 8:
             print(f"{firstVar[i]:<10} {secondVar[i]:<10} {thirdVar[i]:<10}", end=" ")
         elif rowCount == 4:
             print(f"{firstVar[i]:<10} {secondVar[i]:<10}", end=" ")
         elif rowCount == 2:
             print(f"{firstVar[i]:<10}", end=" ")
+        if negateP:
+            row.append(f"{negationFirstVar[i]:<10}")
+        if negateQ:
+            row.append(f"{negationSecondVar[i]:<10}")
+        if negateR:
+            row.append(f"{negationThirdVar[i]:<10}")
 
-        row = " ".join([f"{results[j][i]:<15}" for j in range(len(subStatements))])
-        print(row)
+        print(" ".join(row), end=" ")
+
+        # Print results for each sub-statement.
+        resultRow = " ".join([f"{results[j][i]:<15}" for j in range(len(subStatements))])
+        print(resultRow)
+        
 # Entry point ng putang-inang user
 userInput()
